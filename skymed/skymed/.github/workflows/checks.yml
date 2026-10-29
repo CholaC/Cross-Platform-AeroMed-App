@@ -1,0 +1,41 @@
+name: SkyMed checks
+on: [push, pull_request]
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install
+        working-directory: server
+      - run: pip install -r server/ml/requirements.txt
+      - run: npm test
+        working-directory: server
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: flutter create --platforms=android,web .
+        working-directory: flutter_app
+      - run: flutter pub get
+        working-directory: flutter_app
+      - run: flutter analyze
+        working-directory: flutter_app
+      - run: flutter test
+        working-directory: flutter_app
+      - run: flutter build web
+        working-directory: flutter_app
+      - run: flutter build apk --debug
+        working-directory: flutter_app

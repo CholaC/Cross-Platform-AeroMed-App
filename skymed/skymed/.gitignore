@@ -1,0 +1,8 @@
+**/node_modules/
+**/.venv/
+**/data/
+**/.env
+**/.dart_tool/
+**/build/
+**/local.properties
+**/__pycache__/

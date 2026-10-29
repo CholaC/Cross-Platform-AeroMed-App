@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SkyMed USSD Simulator (Ontech contract)</title>
+<style>
+  :root { --navy:#1F3864; --teal:#2E8B8B; }
+  body { font-family: Calibri, "Segoe UI", sans-serif; background:#eef2f5; margin:0; display:flex; justify-content:center; padding:24px; }
+  .wrap { max-width:760px; width:100%; }
+  h1 { color:var(--navy); font-size:22px; margin:0 0 4px; }
+  p.sub { color:var(--teal); margin:0 0 16px; font-size:14px; }
+  .cols { display:flex; gap:24px; flex-wrap:wrap; }
+  .phone { width:280px; background:#111; border-radius:28px; padding:18px 14px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  .screen { background:#cfe3cf; min-height:220px; border-radius:8px; padding:12px; font-family:Consolas,monospace; font-size:13px; white-space:pre-wrap; color:#0b2b0b; }
+  .keypadrow { display:flex; gap:8px; margin-top:10px; }
+  input#inp { flex:1; padding:10px; border-radius:8px; border:none; font-size:15px; }
+  button { background:var(--teal); color:#fff; border:none; border-radius:8px; padding:10px 14px; font-size:14px; cursor:pointer; }
+  button.dial { background:var(--navy); width:100%; margin-top:10px; }
+  .meta { color:#bbb; font-size:11px; margin-top:8px; text-align:center; }
+  .log { flex:1; min-width:300px; }
+  .log h2 { color:var(--navy); font-size:15px; margin:0 0 8px; }
+  .msisdn { margin-bottom:10px; }
+  .msisdn input { padding:8px; border:1px solid #ccc; border-radius:6px; width:180px; }
+  pre#wire { background:#fff; border:1px solid #d8e0e6; border-radius:8px; padding:10px; font-size:11.5px; max-height:420px; overflow:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SkyMed Zambia — USSD Simulator</h1>
+  <p class="sub">Local simulation — proposed *2575# code; telecom allocation is not configured. Registered demo phone: 260977000001.</p>
+  <div class="cols">
+    <div>
+      <div class="msisdn">Caller MSISDN: <input id="msisdn" value="260977000001" /></div>
+      <div class="phone">
+        <div class="screen" id="screen">Dial *2575# to begin</div>
+        <div class="keypadrow">
+          <input id="inp" placeholder="reply..." />
+          <button onclick="send()">Send</button>
+        </div>
+        <button class="dial" onclick="dial()">📞 Dial *2575#</button>
+        <div class="meta" id="sess">no active session</div>
+      </div>
+    </div>
+    <div class="log">
+      <h2>Gateway wire log (Ontech JSON)</h2>
+      <pre id="wire"></pre>
+    </div>
+  </div>
+</div>
+<script>
+let sessionId = null, active = false, step = 0, pending = false;
+const screen = document.getElementById("screen");
+const wire = document.getElementById("wire");
+const sess = document.getElementById("sess");
+
+function logWire(dir, obj) {
+  wire.textContent = `${dir} ${new Date().toLocaleTimeString()}\n` +
+    JSON.stringify(obj, null, 2) + "\n\n" + wire.textContent;
+}
+
+async function post(requestType, message) {
+ if(pending)return;pending=true;
+ try {
+  const body = {
+    REQUEST_TYPE: requestType,
+    SESSION_ID: sessionId,
+    MESSAGE: message,
+    STEP_ID: String(++step),
+    MSISDN: document.getElementById("msisdn").value.trim(),
+  };
+  logWire("→ gateway POST", body);
+  const res = await fetch("/api/ussd/ontech", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if(!res.ok)throw new Error(data.error || "Gateway request failed");
+  logWire("← app response", data);
+  const r = data.ussd_response || {};
+  screen.textContent = r.USSD_BODY || "(empty)";
+  if (String(r.REQUEST_TYPE) === "3") {           // session terminated
+    active = false;
+    sess.textContent = "session ended";
+  } else {
+    sess.textContent = "session " + sessionId;
+  }
+ } catch(e) {screen.textContent='Connection failed. Check server then dial again; check status before resubmitting.';} finally {pending=false;}
+}
+
+function dial() {
+ if(pending)return;
+  sessionId = "SIM" + Math.random().toString(36).slice(2, 12).toUpperCase();
+  active = true;
+  post(1, "");                                     // REQUEST_TYPE 1 = session start
+}
+
+function send() {
+  if (!active) { screen.textContent = "No session. Dial *2575# first."; return; }
+  const v = document.getElementById("inp").value.trim();
+  document.getElementById("inp").value = "";
+  post(2, v);                                      // REQUEST_TYPE 2 = continue
+}
+document.getElementById("inp").addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
+</script>
+</body>
+</html>

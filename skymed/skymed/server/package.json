@@ -1,0 +1,38 @@
+{
+  "name": "skymed-outreach",
+  "version": "2.0.0",
+  "description": "Multichannel outreach coordination and synthetic schedule-efficiency modelling",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node -e \"require('./src/outreach')\"",
+    "lint": "eslint .",
+    "test": "node --test test/outreach.test.js",
+    "create-user": "node scripts/create-user.js"
+  },
+  "keywords": [
+    "zambia",
+    "flying-doctor",
+    "ussd",
+    "health",
+    "emergency"
+  ],
+  "author": "Chola Juliet (202403527), ZCAS University",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.3.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0"
+  }
+}

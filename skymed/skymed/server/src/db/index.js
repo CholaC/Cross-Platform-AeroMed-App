@@ -1,0 +1,11 @@
+const Database=require('./native');
+const path=require('node:path');
+const fs=require('node:fs');
+const config=require('../config');
+const location=config.dbPath?path.resolve(config.dbPath):path.join(__dirname,'../../data/skymed.db');
+fs.mkdirSync(path.dirname(location),{recursive:true});
+const db=new Database(location);
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+db.pragma('busy_timeout = 5000');
+module.exports=db;

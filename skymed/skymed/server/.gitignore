@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+# NOTE: package-lock.json IS committed — reproducible `npm ci` builds and
+# dependency auditability are a supply-chain security requirement.
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Database & logs
+data/
+*.db
+*.log
+logs/
+
+# OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# Build & temp
+dist/
+build/
+.cache/
+*.tar.gz
+
+# Test coverage
+coverage/
+.nyc_output/
