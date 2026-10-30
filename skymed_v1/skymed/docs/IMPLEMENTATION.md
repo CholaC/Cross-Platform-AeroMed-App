@@ -1,17 +1,5 @@
 # Implementation and requirement traceability
 
-## Source reconciliation
-
-| Guide | Implementation decision |
-|---|---|
-| Product brief: modular monolith + relational data | Retain the supplied Node/Express Linux app, with SQLite and a shared outreach module. The proposed FastAPI/PostgreSQL stack was not a mandatory requirement. PostgreSQL migration would require transaction/concurrency work and is not presented as a driver-only swap. |
-| Brief: roles, approved dates, low-bandwidth channels, traceability | Implement health-worker facility scoping, dispatcher/flight-ops permissions, revision checks, audit trail, USSD and notification outbox. |
-| Latest FR1: queue/date | Queue is calculated in submission order within facility + specialty. Users enter a requested date; only planner approval sets an approved date. Users cannot assign themselves arbitrary queue positions. |
-| Latest FR3: air and road | No water transport or fuel-dispatch feature. Air uses geographic distance; road uses explicitly labelled synthetic network edges. |
-| Latest FR5: ML simulation | Supersedes the brief's deferred ML scope. Simulation models are implemented; operational inference remains unvalidated. |
-| Diagrams: component and activity flows | Mobile/web and USSD share authenticated domain operations; ML runs as a separate Python process. |
-| Diagrams: training/validation/test | Five-fold validation within training data selects the model; untouched test data measures final error and permutation importance. |
-
 ## Functional requirements
 
 | FR | Implemented behaviour | Main source |
@@ -106,9 +94,9 @@ Schedule example (choose future times):
 
 USSD callback is separate: `POST /api/ussd/ontech` with `SESSION_ID`, `MSISDN`, `REQUEST_TYPE` (1 start / 2 continue), `MESSAGE`, and a unique `STEP_ID` per input. Retries must retain the same step ID. Response uses `ussd_response.USSD_BODY` and `REQUEST_TYPE` (2 continue / 3 end). This adapter contract requires validation with the actual provider.
 
-## ML interpretation
+## Machine Learning sample modelling interpretationce
 
-Target is a simulated efficiency score on 0–100, derived from synthetic delay relative to 240 planned minutes. Features: distance, weather severity, road condition, team availability, resource availability, pending requests. The generator formula is returned with each result and recorded in source. The sample output in `docs/synthetic_example.json` is illustrative, not observed service performance.
+Target is a simulated efficiency score on 0–100, derived from synthetic delay relative to 240 planned minutes. Features: distance, weather severity, road condition, team availability, resource availability, pending requests. The generator formula is returned with each result and recorded in source. The sample output in `docs/synthetic_example.json` is illustrative, not observed service performan.
 
 Permutation importance reports the increase in held-out MAE after shuffling each factor, with repeat standard deviation. The model winner is selected using validation MAE only. Features describe the synthetic scenario; none of this is evidence of real-world causation. No automatic dispatch or operational prioritisation is driven by the model.
 
